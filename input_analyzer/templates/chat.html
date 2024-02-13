@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Message Analyser </title>
+ 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <style>
+        .chat-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            width: 100%;
+        }
+
+        #chatbox {
+            height: 600px;
+            width: 100%;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .user-message, .system-message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 20px;
+            max-width: 100%;
+        }
+        .user-message {
+            background-color: #dcf8c6;
+            text-align: center;
+            margin-left: auto;
+        }
+
+        .system-message {
+            background-color: #ebebeb;
+            text-align: left;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        @media (max-width: 1000px) {
+            #chatbox {
+                height: 200px;
+            }
+        }
+    /* Dark Mode Breadcrumb Customization */
+    .breadcrumb-dark {
+      background-color: #343a40; /* Dark background color */
+      color: #ffffff; /* Light text color */
+    }
+    .breadcrumb-dark .breadcrumb-item a {
+      color: #ffffff; /* Light text color for links */
+    }
+    .breadcrumb-dark .breadcrumb-item.active {
+      color: #cccccc; /* Slightly dimmed text color for the active item */
+    }        
+    </style>
+</head>
+
+<body>
+
+  <!-- Dark Offcanvas Sidebar Menu -->
+<nav class="navbar navbar-dark bg-dark fixed-left">
+  <div class="container-fluid">
+    <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasDarkNavbar" aria-controls="offcanvasDarkNavbar" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button> <a class="navbar-brand" href="#">NLP Message Analyser by Fabio D. Jr</a>
+    
+    <div class="offcanvas offcanvas-start text-bg-dark" tabindex="-1" id="offcanvasDarkNavbar" aria-labelledby="offcanvasDarkNavbarLabel">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="offcanvasDarkNavbarLabel">NLP Message Analyser</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body">
+        <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
+          <li class="nav-item">
+            <a class="nav-link active" aria-current="page" href="#">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Link</a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Dropdown
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark">
+              <li><a class="dropdown-item" href="#">Action</a></li>
+              <li><a class="dropdown-item" href="#">Another action</a></li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li><a class="dropdown-item" href="#">Something else here</a></li>
+            </ul>
+          </li>
+        </ul>
+        <form class="d-flex mt-3" role="search">
+          <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+          <button class="btn btn-success" type="submit">Search</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</nav>
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="breadcrumb-dark">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="#">Home</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Library</li>
+    </ol>
+  </nav>
+
+  <!-- Fluid Container with Card -->
+    <div class="container chat-container">
+    <div class="row">
+      <div class="col">
+        <div class="card border-info mb-3" >
+          <div class="card-header">Chatbot NLP Debugger</div>
+          <div class="card-body">
+            <h5 class="card-title">Chatbot</h5>
+            <p class="card-text">Type a message to see possible answers from your bot and the analysis behind the response</p>
+   
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-12">
+           
+                <div id="chatbox" class="my-3">
+                    
+                </div>
+                <input type="text" id="userInput" class="form-control" placeholder="Type something..." onkeypress="if(event.keyCode==13){sendMessage()}">
+            </div>
+        </div>
+    </div>              
+          
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer mt-auto py-3 bg-dark text-white">
+    <div class="container text-center">
+      <span>&copy; Copyright 2024 - Fabio D. Jr</span>
+    </div>
+  </footer>    
+    <script>
+        
+        function sendMessage() {
+            var userInput = document.getElementById("userInput");
+            if (userInput.value.trim() !== '') {
+                var inputText = userInput.value; // Guarda o texto do usuário antes de limpar o campo
+                userInput.disabled = true; // Desabilita a entrada do usuário
+
+                var userMessage = 
+                `<div class='user-message'><br>
+                    <i> ${inputText} </i>
+                    <img src="/static/user.png" alt="User" class="contact-image">
+                </div>`;
+                document.getElementById("chatbox").innerHTML += userMessage;
+                userInput.value = ""; // Limpa o campo de entrada depois de usar o valor
+
+                showTypingIndicator();
+
+                fetch("/send_message", {
+                    method: "POST",
+                    body: new URLSearchParams({"message": inputText}) // Usa o texto guardado
+                })
+                .then(response => response.json())
+                .then(data => {
+                    removeTypingIndicator();
+                    var systemMessage = `<div class='system-message'>
+                    <img src="/static/bot.png" alt="User" class="contact-image">
+                    BOT: ${data.message}</div>`;
+                    document.getElementById("chatbox").innerHTML += systemMessage;
+                    var chatbox = document.getElementById("chatbox");
+                    chatbox.scrollTop = chatbox.scrollHeight;
+
+                    userInput.disabled = false; // Habilita a entrada do usuário novamente
+                });
+            }
+        }
+
+
+        function showTypingIndicator() {
+            var typingIndicator = '<div id="typingIndicator" class="system-message">System is typing';
+            document.getElementById("chatbox").innerHTML += typingIndicator;
+            var dots = 0;
+            window.typingInterval = setInterval(function() {
+                if (dots < 3) {
+                    document.getElementById("typingIndicator").innerHTML += '.';
+                    dots++;
+                } else {
+                    document.getElementById("typingIndicator").innerHTML = 'System is typing';
+                    dots = 0;
+                }
+            }, 500);
+        }
+
+        function removeTypingIndicator() {
+            clearInterval(window.typingInterval);
+            var typingElement = document.getElementById("typingIndicator");
+            if (typingElement) typingElement.remove();
+        }
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
